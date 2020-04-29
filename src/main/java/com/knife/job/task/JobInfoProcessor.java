@@ -3,12 +3,10 @@ package com.knife.job.task;
 import com.knife.job.pojo.JobInfo;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.pipeline.FilePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.scheduler.BloomFilterDuplicateRemover;
 import us.codecraft.webmagic.scheduler.QueueScheduler;
@@ -26,7 +24,7 @@ public class JobInfoProcessor implements PageProcessor {
     //抓取网站的相关配置，包括编码、抓取间隔、重试次数等
     private Site site = Site.me()
             .setCharset("gbk") //设置编码格式
-            .setTimeOut(10*1000) //设置超时时间，单位是毫秒
+            .setTimeOut(10 * 1000) //设置超时时间，单位是毫秒
             .setRetrySleepTime(3000) //设置重试时间，单位是毫秒
             .setSleepTime(3) //设置重试次数
             ;
@@ -77,7 +75,7 @@ public class JobInfoProcessor implements PageProcessor {
         Html html = page.getHtml();
 
         //获取公司名称
-        jobInfo.setCompanyName(html.css("div.cn p.cname a","text").toString());
+        jobInfo.setCompanyName(html.css("div.cn p.cname a", "text").toString());
         //获取公司地址
         jobInfo.setCompanyAddr(Jsoup.parse(html.css("div.bmsg").nodes().get(1).toString()).text());
         //获取公司信息
@@ -85,11 +83,11 @@ public class JobInfoProcessor implements PageProcessor {
         info = (info == null) ? "" : info;
         jobInfo.setCompanyInfo(info);
         //获取职位名称
-        jobInfo.setJobName(html.css("div.cn h1","text").toString());
+        jobInfo.setJobName(html.css("div.cn h1", "text").toString());
 
         //杭州  |  在校生/应届生  |  大专  |  招2人  |  04-20发布
         String jobAddr = Jsoup.parse(html.css("div.cn p.msg").toString()).text();
-        jobAddr  = jobAddr.substring(0,jobAddr.indexOf("|"));
+        jobAddr = jobAddr.substring(0, jobAddr.indexOf("|"));
         //获取工作地址
         jobInfo.setJobAddr(jobAddr);
         //获取职位信息
@@ -104,11 +102,11 @@ public class JobInfoProcessor implements PageProcessor {
         jobInfo.setUrl(page.getUrl().toString());
         //获取职位发布时间
         String time = Jsoup.parse(html.css("div.cn p.msg").regex("[0-9]{2}[-][0-9]{2}.*").toString()).text();
-        time = time.substring(0,time.indexOf("发布"));
+        time = time.substring(0, time.indexOf("发布"));
         jobInfo.setTime(time);
 
         //把结果保存
-        page.putField("jobInfo",jobInfo);
+        page.putField("jobInfo", jobInfo);
     }
 
     @Override
@@ -121,16 +119,16 @@ public class JobInfoProcessor implements PageProcessor {
 
     //initialDelay当前任务启动后，等等多久执行方法
     //fixedDelay每隔多久执行方法
-    @Scheduled(initialDelay = 1000, fixedDelay = 100 * 1000)
+    //@Scheduled(initialDelay = 1000, fixedDelay = 100 * 1000)
     public void process() {
         Spider.create(new JobInfoProcessor())
-        .addUrl(url) //添加爬取目标url
-        .setScheduler(new QueueScheduler()
-        .setDuplicateRemover(
-                new BloomFilterDuplicateRemover(100000))) //修改过滤器为布隆过滤器，当前过滤10万条数据
-        .thread(10) //设置多线程执行
+                .addUrl(url) //添加爬取目标url
+                .setScheduler(new QueueScheduler()
+                        .setDuplicateRemover(
+                                new BloomFilterDuplicateRemover(100000))) //修改过滤器为布隆过滤器，当前过滤10万条数据
+                .thread(10) //设置多线程执行
                 //.addPipeline(new FilePipeline("")) //添加保存文件路径
-                .addPipeline(springDataPipeline) //添加pipeline
+                .addPipeline(this.springDataPipeline) //添加pipeline
                 .run();
     }
 }

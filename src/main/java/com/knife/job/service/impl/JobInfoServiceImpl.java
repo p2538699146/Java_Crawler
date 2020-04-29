@@ -5,6 +5,8 @@ import com.knife.job.pojo.JobInfo;
 import com.knife.job.service.JobInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +21,7 @@ public class JobInfoServiceImpl implements JobInfoService {
     @Override
     @Transactional  //数据库注解，保持事务的一致性
     public void save(JobInfo jobInfo) {
-       //根据url和发布时间查询数据
+        //根据url和发布时间查询数据
         JobInfo param = new JobInfo();
         param.setUrl(jobInfo.getUrl());
         param.setTime(jobInfo.getTime());
@@ -34,6 +36,11 @@ public class JobInfoServiceImpl implements JobInfoService {
         }
     }
 
+    /**
+     * 分页查询数据
+     * @param jobInfo
+     * @return
+     */
     @Override
     public List<JobInfo> findJobInfo(JobInfo jobInfo) {
         //定义返回数据的list
@@ -49,5 +56,11 @@ public class JobInfoServiceImpl implements JobInfoService {
         }
         //返回查询到的数据
         return list;
+    }
+
+    @Override
+    public Page<JobInfo> findJobInfoByPage(int page, int rows) {
+        Page<JobInfo> jobInfoPage = this.jobInfoDao.findAll(PageRequest.of(page - 1, rows));
+        return jobInfoPage;
     }
 }

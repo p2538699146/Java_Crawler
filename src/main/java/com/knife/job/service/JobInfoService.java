@@ -1,6 +1,7 @@
 package com.knife.job.service;
 
 import com.knife.job.pojo.JobInfo;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -18,4 +19,12 @@ public interface JobInfoService {
      * @return
      */
     public List<JobInfo> findJobInfo(JobInfo jobInfo);
+
+    /**
+     * 分页查询数据
+     * @param page
+     * @param rows
+     * @return
+     */
+    Page<JobInfo> findJobInfoByPage(int page, int rows);
 }
